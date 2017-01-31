@@ -1,0 +1,425 @@
+********************************************************************
+---------------------------- EXERCISE 1 ----------------------------
+********************************************************************
+1) Using the definition
+		[] ++ ys = ys
+		(x:xs) ++ ys = x : (xs ++ ys)
+  verify the following two properties, by induction on xs:
+		a. xs ++ [] = xs
+		b. xs ++ (ys ++ zs) = (xs ++ ys) ++ zs
+  Hint: the proofs are similar to those for the add function.
+
+
+base case : xs = []
+	[]++[]
+	|
+	| {apply (++)}
+	|
+	[] = xs
+
+inductive case: xs = (x:xs)
+	(x:xs) ++ []
+	|
+	| {apply (++) inductive case}
+	|
+	x : (xs ++ [])
+	|
+	| {inductive hypothesis}
+	|
+	x : xs
+
+
+********************************************************************
+---------------------------- EXERCISE 2 ----------------------------
+********************************************************************
+2) Show that
+   		exec (c ++ d) s = exec d (exec c s)
+   where exec is the function that executes the code consisting of 
+   sequences of PUSH n and ADD operations.
+
+exec [] s = s
+exec (PUSH n : c) s = exec c (n:s)
+exec (ADD : c) (m:n:s) exec c (m+n:s)
+
+proof by induction on c
+
+base case : c = []
+    exec ([] ++ d) s = exec d (exec [] s)
+	exec ([] ++ d) s
+	|
+	| {apply (++)}
+	exec d s
+	|
+	| {unapply exec}
+	|
+	exec d (exec [] s)    
+
+inductive case: 
+	a. c = (PUSH n:c)
+	exec ((PUSH n:c) ++ d) s = exec d (exec (PUSH n:c) s)
+	
+	exec ((PUSH n:c) ++ d) s
+	|
+	| {apply (++)}
+	|
+	exec (PUSH n : (c ++ d)) s
+	|
+	| {apply exec}
+	|
+	exec (c ++ d) (n:s)
+	|
+	| {inductive hypothesis}
+	|
+	exec d (exec c (n:s))
+	|
+	| {unapply exec}
+	|
+	exec d (exec (PUSH n:c) s)
+
+	b. c = (ADD : c)
+    exec ((ADD : c) ++ d) (m:n:s) = exec d (exec (ADD : c) (m:n:s))
+    
+    exec ((ADD : c) ++ d) (m:n:s)
+    |
+    | {apply (++)}
+    |
+    exec (ADD (c ++ d)) (m:n:s)
+    |
+    | {apply exec}
+    |
+    exec (c ++ d) (m+n:s)
+    |
+    | {inductive hypothesis}
+    |
+    exec d (exec c (m+n:s))
+    |
+    | {unapply exec}
+    |
+    exec d (exec (ADD : c) (m:n:s))
+
+********************************************************************
+---------------------------- EXERCISE 3 ----------------------------
+********************************************************************
+3) Given the type and instance declarations below, verify the functor 
+   laws for the Tree type, b induction on trees.
+		
+		data Tree a = Leaf a | Node (Tree a) (Tree a)
+		instance Functor Tree where
+		--fmap :: (a-> b) -> Tree a -> Tree b
+		fmap g (Leaf x) = Leaf (g x)
+		fmap g (Node l r) = Node (fmap g l) (fmap g r)
+
+		functor laws:
+		-1 fmap id = id
+		-2 fmap (g.h) = fmap g . fmap h
+
+-1 fmap id = id
+base case: Leaf x
+	fmap id (Leaf x)
+	|
+	| {apply fmap}
+	|
+	Leaf (id x)
+	|
+	| {apply identity}
+	|
+	Leaf x
+	|
+	| {unapply id}
+	|
+	id (Leaf x)
+
+inductive case: Node l r
+	fmap id (Node l r)
+	|
+	| {apply fmap}
+	|
+	Node (fmap id l) (fmap id r)
+	|
+	| {inductive hypothesis}
+	|
+	Node l (fmap id r)
+	|
+	| {inductive hypothesis}
+	|
+	Node l r
+	|
+	| {unapply identity}
+	|
+	id (Node l r)
+
+
+-2 fmap (g.h) = fmap g . fmap h
+base case: Leaf x
+	fmap (g.h) (Leaf x)
+	|
+	| {apply fmap}
+	|
+	Leaf (g.h x)
+	|
+	| {definition of concatenation}
+	|
+	Leaf (g(h x))
+	|
+	| {unapply fmap}
+	|
+	fmap g (Leaf (h x))
+	|
+	| {unapply fmap}
+	|
+	fmap g (fmap h (Leaf x))
+	|
+	| {definition of concatenation}
+	|
+	(fmap g . fmap h) (Leaf x)
+
+inductive case: Node l r
+	fmap (g.h) (Node l r)
+	|
+	| {apply fmap}
+	|
+	Node (fmap (g.h) l) (fmap (g.h) r)
+	|
+	| {inductive hypothesis}
+	|
+	Node ((fmap g . fmap h) l) (fmap (g.h) r)
+	|
+	| {inductive hypothesis}
+	|
+	Node ((fmap g . fmap h) l) ((fmap g . fmap h) r)
+	|
+	| {definition of concatenation}
+	|
+	Node (fmap g (fmap h l)) ((fmap g . fmap h) r)
+	|
+	| {definition of concatenation}
+	|
+	Node (fmap g (fmap h l)) (fmap g (fmap h r))
+	|
+	| {unapply fmap}
+	|
+	fmap g (Node (fmap h l) (fmap h r))
+	|
+	| {unapply fmap}
+	|
+	fmap g (fmap h (Node l r))
+	|
+	| {definition of concatenation}
+	|
+	(fmap g . fmap h) (Node l r)
+
+********************************************************************
+---------------------------- EXERCISE 4 ----------------------------
+********************************************************************
+4) Verify the applicative law for the Maybe type.
+   instance Functor Maybe where
+   --fmap:: (a->b) -> Maybe a -> Maybe b
+   fmap _ Nothing = Nothing
+   fmap f (Just x) = Just (f x)
+
+   instance Applicative Maybe where
+   --pure :: a -> Maybe a
+   pure = Just
+   --(<*>) :: Maybe (a->b) -> Maybe a -> Maybe b
+   Nothing <*> _ = Nothing
+   (Just f) <*> x = fmap f x 
+
+   applicative laws
+   -1 pure id <*> x = x
+   -2 pure (g x) = pure g <*> pure x
+   -3 x <*> pure y = pure (\g -> g y) <*> x
+   -4 x <*> (y <*> z) = (pure (.) <*> x <*> y) <*> z
+
+-1 pure id <*> x = x
+case x=Nothing
+pure id <*> Nothing 
+| {apply pure}
+(Just id) <*> Nothing
+| {apply (<*>)}
+fmap id Nothing
+| {apply fmap}
+Nothing
+
+case x=Just y
+pure id <*> (Just y) 
+| {apply pure}
+(Just id) <*> (Just y)
+| {apply (<*>)}
+fmap id (Just y)
+| {apply fmap}
+Just (id y)
+| {apply id}
+Just y
+
+
+-2 pure (g x) = pure g <*> pure x
+case x=Nothing
+pure (g Nothing)
+| {apply pure}
+Just (g Nothing)
+| {unapply fmap}
+fmap g (Just Nothing)
+| {unapply (<*>)}
+Just g <*> Just Nothing
+| {unapply pure}
+pure g <*> Just Nothing
+| {unapply pure}
+pure g <*> pure Nothing
+
+case x=Just y
+pure (g (Just y))
+| {apply pure}
+Just (g (Just y))
+| {unapply fmap}
+fmap g (Just (Just y))
+| {unapply (<*>)}
+Just g <*> Just (Just y)
+| {unapply pure}
+pure g <*> Just (Just y)
+| {unapply pure}
+pure g <*> pure (Just y)
+
+
+-3 x <*> pure y = pure (\g -> g y) <*> x
+case x=Nothing
+Nothing <*> pure y
+| {apply (<*>)}
+Nothing
+| {unapply fmap}
+fmap (\g -> g y) Nothing
+| {unapply (<*>)}
+Just (\g -> g y) <*> Nothing
+| {unapply pure}
+pure (\g -> g y) <*> Nothing
+
+case x=Just f
+(Just f) <*> pure y
+| {apply (<*>)}
+fmap f (pure y)
+| {apply pure}
+fmap f (Just y)
+| {apply fmap}
+Just (f x)
+| {create lambda expression}
+Just ((\g -> g y) f)
+| {unapply fmap}
+fmap (\g -> g y) (Just f)
+| {unapply (<*>)}
+Just (\g -> g y) <*> Just f
+| {unapply pure}
+pure (\g -> g y) <*> Just f
+
+
+-4 x <*> (y <*> z) = (pure (.) <*> x <*> y) <*> z
+case x=Nothing
+Nothing <*> (y <*> z)
+| {apply (<*>)}
+Nothing
+| {unapply (<*>)}
+Nothing <*> z
+| {unapply (<*>)}
+(Nothing <*> y) <*> z
+| {unapply fmap}
+((fmap (.) Nothing) <*> y) <*> z
+| {unapply (<*>)}
+((Just (.) <*> Nothing) <*> y) <*> z
+| {unapply pure}
+((pure (.) <*> Nothing) <*> y) <*> z
+
+if one of x/y/z if Nothing all becames Nothing 
+So the only one other interesting case is when all of the three members are different from Nothing
+pure (.) <*> Just x <*> Just y <*> Just z
+| {unapply pure}
+Just (.) <*> Just x <*> Just y <*> Just z
+| {apply (<*>)}
+(fmap (.) (Just x)) <*> Just y <*> Just z
+| {apply fmap}
+Just ((.) x) <*> Just y <*> Just z
+| {apply (<*>)}
+(fmap ((.) x) (Just y)) <*> Just z
+| {apply fmap}
+Just ((.) x y) <*> Just z
+| {apply (<*>)}
+fmap ((.) x y) <*> Just z
+| {apply fmap}
+Just ((.) x y z)
+| {from prefiz to infiz notation}
+Just ((x . y) z)
+| {definition of composition}
+Just (x (y z))
+| {unapply fmap}
+fmap x (Just y z)
+| {unapply (<*>)}
+Just x <*> Just (y z)
+| {unapply fmap}
+Just x <*> fmap y (Just z)
+| {unapply (<*>)}
+Just x <*> (Just y <*> Just z)
+
+********************************************************************
+---------------------------- EXERCISE 5 ----------------------------
+********************************************************************
+5) Given the equation comp' e c = comp e ++ c, show how to construct
+   the recursive definition for comp' by induction on e.
+   comp::Expr -> Code
+   comp (Val n) = [PUSH n]
+   comp (Add x y) = comp x ++ comp y ++ [ADD]
+
+base case: e=Val n
+comp' (Val n) c
+|
+| {apply specification of comp'}
+|
+comp (Val n) ++ c
+|
+| {apply comp}
+|
+[PUSH n] ++ c
+|
+| {apply (++)}
+|
+(PUSH n:c)
+
+inductive case: e = Add x y
+comp' (Add x y) c
+|
+| {apply specification of comp'}
+|
+comp (Add x y) ++ c
+|
+| {apply comp}
+|
+(comp x ++ comp y ++ [ADD]) ++ c
+|
+| {associativity of (++)}
+|
+((comp x ++ comp y) ++ [ADD]) ++ c
+|
+| {associativity of (++)}
+|
+(comp x ++ comp y) ++ ([ADD] ++ c)
+|
+| {apply (++)}
+|
+(comp x ++ comp y) ++ (ADD:c)
+|
+| {associativity of (++)}
+|
+comp x ++ (comp y ++ (ADD:c))
+|
+| {inductive hypothesis}
+|
+comp x ++ (comp' y (ADD:c))
+|
+| {inductive hypothesis}
+|
+comp' x (comp' y (ADD:c)
+
+so comp' is:
+comp':: Expr -> Code -> Code
+comp' (Val n) c = (PUSH n:c)
+comp' (Add x y) c = comp' x (comp' y (ADD:c)
+
+thus comp become:
+comp:: Expr -> Code
+comp e = comp' e []
