@@ -2,14 +2,14 @@
 ---------------------------- EXERCISE 1 ----------------------------
 ********************************************************************
 1) Using the definition
-		[] ++ ys = ys
-		(x:xs) ++ ys = x : (xs ++ ys)
-  verify the following two properties, by induction on xs:
-		a. xs ++ [] = xs
-		b. xs ++ (ys ++ zs) = (xs ++ ys) ++ zs
-  Hint: the proofs are similar to those for the add function.
+      def 1 -> [] ++ ys = ys
+      def 2 -> (x:xs) ++ ys = x : (xs ++ ys)
+   verify the following two properties, by induction on xs:
+      a. xs ++ [] = xs
+      b. xs ++ (ys ++ zs) = (xs ++ ys) ++ zs
+   Hint: the proofs are similar to those for the add function.
 
-
+a. xs ++ [] = xs
 base case : xs = []
 	[]++[]
 	|
@@ -20,7 +20,7 @@ base case : xs = []
 inductive case: xs = (x:xs)
 	(x:xs) ++ []
 	|
-	| {apply (++) inductive case}
+	| {apply def 2}
 	|
 	x : (xs ++ [])
 	|
@@ -28,6 +28,36 @@ inductive case: xs = (x:xs)
 	|
 	x : xs
 
+b. xs ++ (ys ++ zs) = (xs ++ ys) ++ zs
+base case: xs = []
+	[] ++ (ys ++ zs)
+	|
+	| {apply def 1}
+	|
+	ys ++ zs
+	|
+	| {unapply def 1}
+	|
+	([] ++ ys) ++ zs
+
+inductive case: xs = (x:xs)
+	(x:xs) ++ (ys ++ zs)
+	|
+	| {apply def 2}
+	|
+	x : (xs ++ (ys ++ zs))
+	|
+	| {inductive hypothesis}
+	|
+	x : ((xs ++ ys) ++ zs)
+	|
+	| {unapply def 2}
+	|
+	(x:(xs ++ ys)) ++ zs
+	|
+	| {unapply def 2}
+	|
+	((x:xs) ++ ys) ++ zs
 
 ********************************************************************
 ---------------------------- EXERCISE 2 ----------------------------
@@ -231,130 +261,224 @@ inductive case: Node l r
    -4 x <*> (y <*> z) = (pure (.) <*> x <*> y) <*> z
 
 -1 pure id <*> x = x
-case x=Nothing
-pure id <*> Nothing 
-| {apply pure}
-(Just id) <*> Nothing
-| {apply (<*>)}
-fmap id Nothing
-| {apply fmap}
-Nothing
+	case x=Nothing
+	pure id <*> Nothing 
+	|
+	| {apply pure}
+	|
+	(Just id) <*> Nothing
+	|
+	| {apply (<*>)}
+	|
+	fmap id Nothing
+	|
+	| {apply fmap}
+	|
+	Nothing
 
 case x=Just y
-pure id <*> (Just y) 
-| {apply pure}
-(Just id) <*> (Just y)
-| {apply (<*>)}
-fmap id (Just y)
-| {apply fmap}
-Just (id y)
-| {apply id}
-Just y
+	pure id <*> (Just y) 
+	|
+	| {apply pure}
+	|
+	(Just id) <*> (Just y)
+	|
+	| {apply (<*>)}
+	|
+	fmap id (Just y)
+	|
+	| {apply fmap}
+	|
+	Just (id y)
+	|
+	| {apply id}
+	|
+	Just y
 
 
 -2 pure (g x) = pure g <*> pure x
 case x=Nothing
-pure (g Nothing)
-| {apply pure}
-Just (g Nothing)
-| {unapply fmap}
-fmap g (Just Nothing)
-| {unapply (<*>)}
-Just g <*> Just Nothing
-| {unapply pure}
-pure g <*> Just Nothing
-| {unapply pure}
-pure g <*> pure Nothing
-
+	pure (g Nothing)
+	|
+	| {apply pure}
+	|
+	Just (g Nothing)
+	|
+	| {unapply fmap}
+	|
+	fmap g (Just Nothing)
+	|
+	| {unapply (<*>)}
+	|
+	Just g <*> Just Nothing
+	|
+	| {unapply pure}
+	|
+	pure g <*> Just Nothing
+	|
+	| {unapply pure}
+	|
+	pure g <*> pure Nothing
+	
 case x=Just y
-pure (g (Just y))
-| {apply pure}
-Just (g (Just y))
-| {unapply fmap}
-fmap g (Just (Just y))
-| {unapply (<*>)}
-Just g <*> Just (Just y)
-| {unapply pure}
-pure g <*> Just (Just y)
-| {unapply pure}
-pure g <*> pure (Just y)
-
+	pure (g (Just y))
+	|
+	| {apply pure}
+	|
+	Just (g (Just y))
+	|
+	| {unapply fmap}
+	|
+	fmap g (Just (Just y))
+	|
+	| {unapply (<*>)}
+	|
+	Just g <*> Just (Just y)
+	|
+	| {unapply pure}
+	|
+	pure g <*> Just (Just y)
+	|
+	| {unapply pure}
+	|
+	pure g <*> pure (Just y)
+	
 
 -3 x <*> pure y = pure (\g -> g y) <*> x
-case x=Nothing
-Nothing <*> pure y
-| {apply (<*>)}
-Nothing
-| {unapply fmap}
-fmap (\g -> g y) Nothing
-| {unapply (<*>)}
-Just (\g -> g y) <*> Nothing
-| {unapply pure}
-pure (\g -> g y) <*> Nothing
+	case x=Nothing
+	Nothing <*> pure y
+	|
+	| {apply (<*>)}
+	|
+	Nothing
+	|
+	| {unapply fmap}
+	|
+	fmap (\g -> g y) Nothing
+	|
+	| {unapply (<*>)}
+	|
+	Just (\g -> g y) <*> Nothing
+	|
+	| {unapply pure}
+	|
+	pure (\g -> g y) <*> Nothing
 
 case x=Just f
-(Just f) <*> pure y
-| {apply (<*>)}
-fmap f (pure y)
-| {apply pure}
-fmap f (Just y)
-| {apply fmap}
-Just (f x)
-| {create lambda expression}
-Just ((\g -> g y) f)
-| {unapply fmap}
-fmap (\g -> g y) (Just f)
-| {unapply (<*>)}
-Just (\g -> g y) <*> Just f
-| {unapply pure}
-pure (\g -> g y) <*> Just f
+	(Just f) <*> pure y
+	|
+	| {apply (<*>)}
+	|
+	fmap f (pure y)
+	|
+	| {apply pure}
+	|
+	fmap f (Just y)
+	|
+	| {apply fmap}
+	|
+	Just (f x)
+	|
+	| {create lambda expression}
+	|
+	Just ((\g -> g y) f)
+	|
+	| {unapply fmap}
+	|
+	fmap (\g -> g y) (Just f)
+	|
+	| {unapply (<*>)}
+	|
+	Just (\g -> g y) <*> Just f
+	|
+	| {unapply pure}
+	|
+	pure (\g -> g y) <*> Just f
 
 
 -4 x <*> (y <*> z) = (pure (.) <*> x <*> y) <*> z
 case x=Nothing
-Nothing <*> (y <*> z)
-| {apply (<*>)}
-Nothing
-| {unapply (<*>)}
-Nothing <*> z
-| {unapply (<*>)}
-(Nothing <*> y) <*> z
-| {unapply fmap}
-((fmap (.) Nothing) <*> y) <*> z
-| {unapply (<*>)}
-((Just (.) <*> Nothing) <*> y) <*> z
-| {unapply pure}
-((pure (.) <*> Nothing) <*> y) <*> z
+	Nothing <*> (y <*> z)
+	|
+	| {apply (<*>)}
+	|
+	Nothing
+	|
+	| {unapply (<*>)}
+	|
+	Nothing <*> z
+	|
+	| {unapply (<*>)}
+	|
+	(Nothing <*> y) <*> z
+	|
+	| {unapply fmap}
+	|
+	((fmap (.) Nothing) <*> y) <*> z
+	|
+	| {unapply (<*>)}
+	|
+	((Just (.) <*> Nothing) <*> y) <*> z
+	|
+	| {unapply pure}
+	|
+	((pure (.) <*> Nothing) <*> y) <*> z
 
 if one of x/y/z if Nothing all becames Nothing 
 So the only one other interesting case is when all of the three members are different from Nothing
-pure (.) <*> Just x <*> Just y <*> Just z
-| {unapply pure}
-Just (.) <*> Just x <*> Just y <*> Just z
-| {apply (<*>)}
-(fmap (.) (Just x)) <*> Just y <*> Just z
-| {apply fmap}
-Just ((.) x) <*> Just y <*> Just z
-| {apply (<*>)}
-(fmap ((.) x) (Just y)) <*> Just z
-| {apply fmap}
-Just ((.) x y) <*> Just z
-| {apply (<*>)}
-fmap ((.) x y) <*> Just z
-| {apply fmap}
-Just ((.) x y z)
-| {from prefiz to infiz notation}
-Just ((x . y) z)
-| {definition of composition}
-Just (x (y z))
-| {unapply fmap}
-fmap x (Just y z)
-| {unapply (<*>)}
-Just x <*> Just (y z)
-| {unapply fmap}
-Just x <*> fmap y (Just z)
-| {unapply (<*>)}
-Just x <*> (Just y <*> Just z)
+	pure (.) <*> Just x <*> Just y <*> Just z
+	|
+	| {unapply pure}
+	|
+	Just (.) <*> Just x <*> Just y <*> Just z
+	|
+	| {apply (<*>)}
+	|
+	(fmap (.) (Just x)) <*> Just y <*> Just z
+	|
+	| {apply fmap}
+	|
+	Just ((.) x) <*> Just y <*> Just z
+	|
+	| {apply (<*>)}
+	|
+	(fmap ((.) x) (Just y)) <*> Just z
+	|
+	| {apply fmap}
+	|
+	Just ((.) x y) <*> Just z
+	|
+	| {apply (<*>)}
+	|
+	fmap ((.) x y) <*> Just z
+	|
+	| {apply fmap}
+	|
+	Just ((.) x y z)
+	|
+	| {from prefiz to infiz notation}
+	|
+	Just ((x . y) z)
+	|
+	| {definition of composition}
+	|
+	Just (x (y z))
+	|
+	| {unapply fmap}
+	|
+	fmap x (Just y z)
+	|
+	| {unapply (<*>)}
+	|
+	Just x <*> Just (y z)
+	|
+	| {unapply fmap}
+	|
+	Just x <*> fmap y (Just z)
+	|
+	| {unapply (<*>)}
+	|
+	Just x <*> (Just y <*> Just z)
 
 ********************************************************************
 ---------------------------- EXERCISE 5 ----------------------------
@@ -366,54 +490,54 @@ Just x <*> (Just y <*> Just z)
    comp (Add x y) = comp x ++ comp y ++ [ADD]
 
 base case: e=Val n
-comp' (Val n) c
-|
-| {apply specification of comp'}
-|
-comp (Val n) ++ c
-|
-| {apply comp}
-|
-[PUSH n] ++ c
-|
-| {apply (++)}
-|
-(PUSH n:c)
+	comp' (Val n) c
+	|
+	| {apply specification of comp'}
+	|
+	comp (Val n) ++ c
+	|
+	| {apply comp}
+	|
+	[PUSH n] ++ c
+	|
+	| {apply (++)}
+	|
+	(PUSH n:c)
 
 inductive case: e = Add x y
-comp' (Add x y) c
-|
-| {apply specification of comp'}
-|
-comp (Add x y) ++ c
-|
-| {apply comp}
-|
-(comp x ++ comp y ++ [ADD]) ++ c
-|
-| {associativity of (++)}
-|
-((comp x ++ comp y) ++ [ADD]) ++ c
-|
-| {associativity of (++)}
-|
-(comp x ++ comp y) ++ ([ADD] ++ c)
-|
-| {apply (++)}
-|
-(comp x ++ comp y) ++ (ADD:c)
-|
-| {associativity of (++)}
-|
-comp x ++ (comp y ++ (ADD:c))
-|
-| {inductive hypothesis}
-|
-comp x ++ (comp' y (ADD:c))
-|
-| {inductive hypothesis}
-|
-comp' x (comp' y (ADD:c)
+	comp' (Add x y) c
+	|
+	| {apply specification of comp'}
+	|
+	comp (Add x y) ++ c
+	|
+	| {apply comp}
+	|
+	(comp x ++ comp y ++ [ADD]) ++ c
+	|
+	| {associativity of (++)}
+	|
+	((comp x ++ comp y) ++ [ADD]) ++ c
+	|
+	| {associativity of (++)}
+	|
+	(comp x ++ comp y) ++ ([ADD] ++ c)
+	|
+	| {apply (++)}
+	|
+	(comp x ++ comp y) ++ (ADD:c)
+	|
+	| {associativity of (++)}
+	|
+	comp x ++ (comp y ++ (ADD:c))
+	|
+	| {inductive hypothesis}
+	|
+	comp x ++ (comp' y (ADD:c))
+	|
+	| {inductive hypothesis}
+	|
+	comp' x (comp' y (ADD:c)
 
 so comp' is:
 comp':: Expr -> Code -> Code
